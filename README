@@ -1,6 +1,0 @@
-### Advent Of Code solutions for me
-
-#####Naming convention
-- p[0-9].c - the code file
-- p[0-9].input - the input provided by the problem
-- p[0-9] - compiled binary
