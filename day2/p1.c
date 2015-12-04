@@ -6,7 +6,8 @@ int main(void)
 {
 	unsigned long long total = 0;
 	unsigned int dim[3], temp;
-	char c, i;
+	char c;
+	unsigned char i;
 	temp = dim[0] = dim[1] = dim[2] = 0;
 	while ((c = fgetc(stdin)) != EOF) {
 		switch (c) {
@@ -38,7 +39,7 @@ int main(void)
 			temp = dim[0] = dim[1] = dim[2] = 0;
 		}
 	}
-	printf("Total size: %lu\n", total);
+	printf("Total size: %llu\n", total);
 	return 0;
 }
 
