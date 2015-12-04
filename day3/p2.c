@@ -7,7 +7,9 @@ struct house {
 	long y;
 	struct house *next;
 };
+
 char AddHouse(long, long, struct house *);
+void RemoveHouses(struct house *haus);
 
 int main(void)
 {
@@ -17,7 +19,7 @@ int main(void)
 	char c;
 	long x[2], y[2];
 	x[0] = y[0] = x[1] = y[1] = 0;
-	char roboOrReal = 0;
+	unsigned char roboOrReal = 0;
 	unsigned long houses = 1; // The initial house.
 	while ((c = fgetc(stdin)) != EOF) {
 		switch (c) {
@@ -41,6 +43,7 @@ int main(void)
 		roboOrReal = !roboOrReal;
 	}
 	printf("Houses visited: %lu\n", houses);
+	RemoveHouses(current);
 	return 0;
 }
 
@@ -57,4 +60,16 @@ char AddHouse(long x, long y, struct house *haus)
 		}
 	}
 	return 0;
+}
+
+void RemoveHouses(struct house *haus)
+{
+	struct house *cur, *old;
+	cur = old = haus;
+	while(cur->next) {
+		old = cur;
+		cur = cur->next;
+		free(old);
+	}
+	return;
 }

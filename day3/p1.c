@@ -7,7 +7,9 @@ struct house {
 	long y;
 	struct house *next;
 };
+
 char AddHouse(long, long, struct house *);
+void RemoveHouses(struct house *haus);
 
 int main(void)
 {
@@ -38,6 +40,7 @@ int main(void)
 		houses += AddHouse(x,y,current);
 	}
 	printf("Houses visited: %lu\n", houses);
+	RemoveHouses(current);
 	return 0;
 }
 
@@ -54,4 +57,16 @@ char AddHouse(long x, long y, struct house *haus)
 		}
 	}
 	return 0;
+}
+
+void RemoveHouses(struct house *haus)
+{
+	struct house *cur, *old;
+	cur = old = haus;
+	while(cur->next) {
+		old = cur;
+		cur = cur->next;
+		free(old);
+	}
+	return;
 }
