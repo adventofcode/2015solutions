@@ -65,7 +65,7 @@ public class p1a {
  
     public static void main(String[] args) throws FileNotFoundException {
 
-        Scanner s = new Scanner(new File("input.txt"));
+        Scanner s = new Scanner(new File("input"));
     
         while(s.hasNext()){
             String command = s.nextLine();
