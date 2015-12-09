@@ -20,17 +20,17 @@ public class p2a {
 
     public static void main(String[] args) throws FileNotFoundException {
 
-        int str_rep = 0;
+        int new_string = 0;
         int str_length = 0;
 
         Scanner s = new Scanner(new File("input"));
 
         while(s.hasNext()){
             String str = s.nextLine();
-            str_rep += evaluate(str);
+            new_string += evaluate(str);
             str_length += str.length();
         }
 
-        System.out.println("The difference is " + (str_rep - str_length) + ".");
+        System.out.println("The difference is " + (new_string - str_length) + ".");
     }
 }
