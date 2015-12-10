@@ -1,34 +1,30 @@
-#![feature(io)]
+#![feature(advanced_slice_patterns, io, slice_patterns)]
 
 use std::io::{self, Read};
 
-fn rle(inp: &[u8]) -> Vec<u8> {
-    let mut prev_val = None;
-    let mut count = 0;
+fn rle(mut inp: &[u8]) -> Vec<u8> {
     let mut res = Vec::new();
-    for val in inp.iter() {
-        let val = *val;
 
-        match prev_val {
-            Some(prev_val_i) => {
-                if val == prev_val_i {
-                    count += 1;
-                } else {
-                    res.push(count);
-                    res.push(prev_val_i);
-                    prev_val = Some(val);
-                    count = 1;
-                }
+    while !inp.is_empty() {
+        match inp {
+            [ref x, ref y, ref z, rest..] if y == x && z == x => {
+                res.push(3);
+                res.push(*x);
+                inp = rest;
             },
-            None => {
-                prev_val = Some(val);
-                count = 1;
-            }
+            [ref x, ref y, rest..] if y == x => {
+                res.push(2);
+                res.push(*x);
+                inp = rest;
+            },
+            [ref x, rest..] => {
+                res.push(1);
+                res.push(*x);
+                inp = rest;
+            },
+            [] => unreachable!(),
         }
     }
-
-    res.push(count);
-    res.push(prev_val.expect("there should be input"));
 
     res
 }
