@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// By Garrett Greenwood
+// Dec 2015
+// electricexploits.net
 
 var fs = require('fs');
 
