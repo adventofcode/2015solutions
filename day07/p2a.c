@@ -5,12 +5,14 @@
 
 #define BUFFER 80
 
+// Used later to specify actions.
 #define WIRE_READ 1
 #define WIRE_WRITE 2
 #define WIRE_SAFEWRITE 4
 #define WIRE_PRINT 8
 #define WIRE_FREE 16
 
+// NOOP is a default value. GATES_MAX is for iteration
 enum gates {
 	NOOP,
 	AND,
@@ -21,6 +23,7 @@ enum gates {
 	GATES_MAX
 };
 
+// Strings with indicies corrosponding to enum gates values.
 char *gatesStr[] = {
 	"",
 	"AND",
@@ -31,6 +34,7 @@ char *gatesStr[] = {
 	""
 };
 
+// For basic state machine parsing of input.
 enum state {
 	init,
 	op1,
@@ -41,11 +45,13 @@ enum state {
 	end
 };
 
+// Probably better as a union.
 struct operand {
 	enum gates op;
 	uint16_t value;
 };
 
+// Struct containing the instruction on a given line.
 struct operation {
 	enum gates gate;
 	unsigned char numVals;
@@ -55,6 +61,7 @@ struct operation {
 	struct operation *prev;
 };
 
+// Wire and value, for when parsing is done.
 struct wires {
 	char* name;
 	uint16_t value;
@@ -62,28 +69,36 @@ struct wires {
 	struct wires *right;
 };
 
+// Lazy man's growing char array with Easy Iteration functionality.
 struct buffer {
 	char *line;
 	struct buffer *next;
 };
 
+// Poor man's string solution.
 struct buffer *AddToBuff(struct buffer *, char *);
 void FreeBuff(struct buffer *);
 
+// Ever expanding character string.
 char *AddToString(char *, int *, char);
+
+// Relating to operations and wires.
 int32_t ComputeVal(struct wires *, struct operation *op);
-char StrIsZero(char *);
 struct operation *AddOperation(struct operation *, char *);
 enum gates ComputeOperand(char *);
 void OperationsToWires(struct wires *, struct operation *);
 void RemoveOp(struct operation *);
 
+// Following 4 just wrap calls to TraverseWire
 void PrintWires(struct wires *);
 struct wires *GetFromWire(struct wires *, char *);
 void SaveToWire(struct wires *, char *, uint16_t);
 void FreeWires(struct wires *);
+// All BST traversion and operation code.
 struct wires *TraverseWire(struct wires *, char *, uint16_t, unsigned char);
+// Simplifying allocation
 struct wires *InitWire(struct wires *, char *, uint16_t);
+// Simplifying frees
 void CleanWire(struct wires *);
 
 int main(void)
@@ -111,28 +126,29 @@ int main(void)
 		fprintf(stderr, "Can't allocate buffer memory\n");
 		goto freebuff;
 	}
-	//printf("Starting inputting\n");
+	// Declarations done, now down to work.
 	tmpBuff = inBuff;
+	// Get input and store in the buffers.
 	while ((c = fgetc(stdin)) && !feof(stdin)) {
-		//puts(input);
 		if (c == '\n' || feof(stdin)) {
 			tmpBuff = AddToBuff(tmpBuff, input);
 			memset(input, 0, strlen(input));
 		} else {
 			input = AddToString(input, &str_buff, c);
 		}
-		//puts(input);
 	}
-	//printf("Starting processing\n");
+	// Iterate at least once over the input
 	do {
+		// If "a" has a value, wipe everything, give it to "b"
 		if ((tmpWire = GetFromWire(wire, "a"))) {
 			a = tmpWire->value;
 			FreeWires(wire);
 			SaveToWire(wire, "b", a);
 		} else {
-			a = -1;
+			a = -1; // Flag value.
 		}
 		curOp = operations;
+		// For every buffer, parse it into struct operation.
 		for (tmpBuff = inBuff->next; tmpBuff; tmpBuff = tmpBuff->next) {
 			tmpOp = calloc(1, sizeof(struct operation));
 			curOp->next = tmpOp;
@@ -141,12 +157,10 @@ int main(void)
 				goto freemem;
 			}
 		}
-		//printf("Starting operating\n");
+		// Then put into wires.
 		OperationsToWires(wire, operations);
 	} while (a == -1);
-	//printf("Starting printing\n");
 	PrintWires(wire);
-	//printf("Starting freeing\n");
 	FreeWires(wire);
 	error = 0; // If executing, no memory errors.
 freebuff:
@@ -162,22 +176,23 @@ freeinput:
 
 char *AddToString(char *str, int *strAllocSize, char add)
 {
+	// If too small, realloc. Then try to add "add" and '\0' to the end.
 	if (strlen(str) + 2 >= *strAllocSize) {
-		////printf("Alloc size before: %d\n", *strAllocSize);
 		*strAllocSize *= 2;
-		////printf("Alloc size after: %d\n", *strAllocSize);
 		str = realloc(str, sizeof(char)*(*strAllocSize));
-		////printf("Ended realloc\n");
 	}
 	if (str) {
-		str[strlen(str)] = add;
-		str[strlen(str)+1] = 0;
+		unsigned long length = strlen(str);
+		str[length] = add;
+		str[length+1] = 0;
 	}
 	return str;
 }
 
 struct buffer *AddToBuff(struct buffer *curBuff, char *str)
 {
+	// Given a buffer, put the string in the next one and return the
+	// next buffer.
 	unsigned long len = strlen(str);
 	while (curBuff->next) {
 		curBuff = curBuff->next;
@@ -190,6 +205,7 @@ struct buffer *AddToBuff(struct buffer *curBuff, char *str)
 
 void FreeBuff(struct buffer *topBuff)
 {
+	// Free every sub-buffer of topBuff.
 	struct buffer *curBuff, *tmpBuff;
 	curBuff = topBuff;
 	while (curBuff) {
@@ -201,14 +217,18 @@ void FreeBuff(struct buffer *topBuff)
 
 void OperationsToWires(struct wires *wire, struct operation *topOp)
 {
+	// Given operation lvalue -> rvalue
 	struct operation *tmpOp, *curOp;
 	int32_t val;
 	while (topOp->next) {
+		// While there are operations on the list
 		for (curOp = topOp->next; curOp; curOp = curOp->next) {
+			// And if that operation has a confirmed lvalue
 			if ((val = ComputeVal(wire,curOp)) < 0) {
-				////printf("Couldn't find a value for %s\n", wire->name);
 				continue;
 			} else {
+				// write lvalue to rvalue and remove operation
+				// from the list.
 				SaveToWire(wire, curOp->dest, val);
 				tmpOp = curOp->prev;
 				RemoveOp(curOp);
@@ -220,7 +240,9 @@ void OperationsToWires(struct wires *wire, struct operation *topOp)
 
 void RemoveOp(struct operation *op)
 {
-	// Don't give a root node.
+	// Don't give a root node. But probably fine if you do.
+	// Clear all values, introduce before and after to each other, and
+	// gracefully free yourself.
 	if (op->vals) {
 		if (op->vals[0]) {
 			free(op->vals[0]);
@@ -251,20 +273,30 @@ void RemoveOp(struct operation *op)
 
 struct operation *AddOperation(struct operation *curOp, char *input)
 {
+	// Parse string into an operation tokenwise.
 	char *token = malloc((strlen(input)+1)*sizeof(char));
-	strcpy(token,input);
+	strcpy(token,input); // don't destroy input which strtok() can do.
 	token = strtok(token," \n");
+	// Make sure there is something to do.
 	if (!token) {
 		return curOp->prev;
 	}
 	unsigned char j = 0;
+	// We use a state machine to parse each line.
 	enum state state = init;
 	enum gates gate;
 	if (!(curOp->vals = calloc(3, sizeof(char *)))) {
 		fprintf(stderr, "Can't allocate vals memory\n");
 		return NULL;
 	}
-	do {
+	do { // State machine.
+	/** a OP b -> c
+	 *  a OP -> b -- dunno if possible, but parser allows it.
+	 *  OP a -> b
+	 *  a -> b
+	 * start -> op1 -> op2 -> op3 -> through -> dest -> end -> \
+	 *            \______\______\_____/                   \____/
+	 */
 		if (!strcmp(token,"->") && state != end) {
 			state = through;
 		}
@@ -280,7 +312,6 @@ struct operation *AddOperation(struct operation *curOp, char *input)
 				return NULL;
 			}
 			strcpy(curOp->vals[j++],token);
-			////printf("Added token to op: %s\n", token);
 			curOp->numVals = j;
 		} else if (state == through) {
 			state = dest;
@@ -294,6 +325,8 @@ struct operation *AddOperation(struct operation *curOp, char *input)
 			state = end;
 		} 
 	} while ((token = strtok(NULL," \n")) != NULL);
+	// Ensure we got what we came for, that the state machine made it far
+	// enough to be sure of success.
 	if (!curOp->dest) {
 		return NULL;
 	}
@@ -303,6 +336,7 @@ struct operation *AddOperation(struct operation *curOp, char *input)
 
 int32_t ComputeVal(struct wires *wire, struct operation *op)
 {
+	// Given an operation, and the wire object, see if operation may run.
 	uint16_t val[3];
 	uint16_t retVal = 0;
 	uint16_t in;
@@ -311,16 +345,18 @@ int32_t ComputeVal(struct wires *wire, struct operation *op)
 	unsigned int i = 0, j = 0;
 	char errorFetching = 0;
 	for (i = 0; i < op->numVals; i++) {
+		// For each value
 		in = strtol(op->vals[i], &endPtr, 10);
-		if (endPtr == op->vals[i]) {
+		// Try and parse it as a number
+		if (endPtr == op->vals[i]) { // And if that doesn't work
 			gotWire = GetFromWire(wire,op->vals[i]);
-			if (!gotWire) {
-				////printf("Null wire returned\n");
-				errorFetching = 1;
+			if (!gotWire) { // Try the wires.
+				errorFetching = 1; // but prepare for failure
 			} else {
 				in = gotWire->value;
 			}
 		}
+		// Error if necessary, otherwise integer value and continue.
 		if (errorFetching) {
 			return -1;
 		} else {
@@ -328,7 +364,7 @@ int32_t ComputeVal(struct wires *wire, struct operation *op)
 			val[j] = 0;
 		}
 	}
-	switch (op->gate) {
+	switch (op->gate) { // Act on the gate, if any.
 	case AND:
 		retVal = val[0] & val[1];
 		break;
@@ -347,7 +383,7 @@ int32_t ComputeVal(struct wires *wire, struct operation *op)
 	case NOOP:
 		retVal = val[0];
 		break;
-	case GATES_MAX:
+	case GATES_MAX: // Not possible.
 		fprintf(stderr, "Operand computation went wrong.\n");
 		break;
 	}
@@ -356,6 +392,7 @@ int32_t ComputeVal(struct wires *wire, struct operation *op)
 
 enum gates ComputeOperand(char *op)
 {
+	// Given a string try and compute the enum value for it.
 	enum gates i;
 	for (i = NOOP; i < GATES_MAX; i++) {
 		if (!strcmp(op, gatesStr[i])) {
@@ -365,20 +402,9 @@ enum gates ComputeOperand(char *op)
 	return NOOP;
 }
 
-char StrIsZero(char *str)
-{
-	unsigned int i;
-	for (i = 0; i < strlen(str); i++) {
-		if (str[i] != '0') {
-			return 0;
-		}
-	}
-	return 1;
-}
-
+// Next four just wrap TraverseWire calls for readability
 void SaveToWire(struct wires *wire, char *index, uint16_t in_val)
 {
-	////printf("Saved %s: %d.\n", index, in_val);
 	TraverseWire(wire, index, in_val, WIRE_SAFEWRITE);
 }
 
@@ -401,10 +427,13 @@ void FreeWires(struct wires *wire)
 struct wires *TraverseWire(struct wires *wire, char *index,
 		uint16_t val, unsigned char flags)
 {
+	// A poor man's binary search tree. In theory I can print, read, write,
+	// and free, all in the same call. Not recommended or very useful.
+	// Flags choose the operation.
 	struct wires *retVal, *tmp;
 	char goLeft, goRight, i;
 	unsigned char j;
-	struct wires **direction[2];
+	struct wires **direction[2]; // left or right.
 	memset(direction,0,sizeof(direction));
 	goLeft = goRight = 0;
 	retVal = NULL;
@@ -433,6 +462,7 @@ struct wires *TraverseWire(struct wires *wire, char *index,
 		}
 	}
 	j = 0;
+	// Choose the next direction
 	if (goLeft) {
 		direction[j] = &wire->left;
 		j++;
@@ -441,6 +471,7 @@ struct wires *TraverseWire(struct wires *wire, char *index,
 		direction[j] = &wire->right;
 		j++;
 	}
+	// Loop over the directions given.
 	while (j > 0) {
 		j--;
 		if (*direction[j]) {
@@ -462,6 +493,7 @@ struct wires *TraverseWire(struct wires *wire, char *index,
 
 struct wires *InitWire(struct wires *wire, char *name, uint16_t val)
 {
+	// Instantiate a wire with the given attributes.
 	wire->name = malloc((strlen(name)+1)*sizeof(char));
 	if (!wire->name) {
 		fprintf(stderr, "Could not allocate memory for wire string.\n");
@@ -474,6 +506,7 @@ struct wires *InitWire(struct wires *wire, char *name, uint16_t val)
 
 void CleanWire(struct wires *wire)
 {
+	// Delete all attributes a wire has and free any memory.
 	if (wire->name) {
 		free(wire->name);
 	}
