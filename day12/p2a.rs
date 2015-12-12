@@ -26,7 +26,6 @@ fn remove_red(val: &mut Value) {
             if obj.iter()
                 .filter(|&(_, v)| v.as_string().map(|s| s == "red").unwrap_or(false))
                 .next().is_some() {
-                    println!("Removed red from {:?}", obj);
                     obj.clear();
             } else {
                 for (_, mut item) in obj.iter_mut() {
