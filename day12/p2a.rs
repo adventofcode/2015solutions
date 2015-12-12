@@ -33,7 +33,7 @@ fn sum_value(val: &Value) -> i64 {
             let mut sum = 0;
 
             for (_, item) in obj.iter() {
-                if let Some(true) = item.as_string().map(|s| s == "red") {
+                if Some("red") == item.as_string() {
                     return 0;
                 }
 
