@@ -1,3 +1,10 @@
+/**
+ * STRONGLY DEPENDS ON A JSON LIBRARY
+ * The nxjson library is, at time of writing, on bitbucket.
+ * The link follows
+ * https://bitbucket.org/yarosla/nxjson
+ * The source files (nxjson.c and nxjosn.h) are necessary to compile.
+ */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
