@@ -14,9 +14,7 @@ public class p1a {
         for(int a = 0; a <= 100; a++){
             for(int b = 0; b <= 100 - a; b++){
                 for(int c = 0; c <= 100 - a - b; c++){
-                    for(int d = 0; d <= 100 - a - b - c; d++){
-                        recipes.add(new Integer[]{a, b, c, d});
-                    }
+                    recipes.add(new Integer[]{a, b, c, 100 - a - b - c});
                 } 
             }
         }
