@@ -21,7 +21,7 @@ fs.readFile(process.argv[2], 'utf8', function(err, data) {
         }
 
         if(floor < 0) {
-            console.log(i);
+            console.log(i+1);
             return;
         }
     }
