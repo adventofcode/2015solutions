@@ -17,11 +17,10 @@ fn parse_language(language: &[String]) -> HashMap<String, Vec<String>> {
 }
 
 fn path_len(language: &HashMap<String, Vec<String>>, current: String, num_replacements: usize, lowest_replacements: &mut usize, seen: &mut HashMap<String, usize>) {
-    if *seen.get(&current).unwrap_or(&-1) <= num_replacements || num_replacements > *lowest_replacements {
+    if num_replacements > *seen.get(&current).unwrap_or(&-1) || num_replacements > *lowest_replacements {
         return
     }
     seen.insert(current.clone(), num_replacements);
-    println!("{} ({}): {}", *lowest_replacements, num_replacements, current);
 
     for (grapheme, replacements) in language.iter() {
         for replacement in replacements {
