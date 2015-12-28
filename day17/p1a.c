@@ -61,7 +61,7 @@ char *AddToString(char *str, long long *strAllocSize, char add)
 	return str; 
 }
 
-/* arr is the string, curr is the current index to start permutation from and size is sizeof the arr */
+/* curr is the current index to choose and size is sizeof vals */
 long choose(long *vals, int curr, int size, int curTotal)
 {
 	long subMatches = 0;

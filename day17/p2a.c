@@ -49,15 +49,12 @@ char *AddToString(char *str, long long *strAllocSize, char add)
 {
 	long len = strlen(str);
 	if (len + 2 >= *strAllocSize) {
-		////printf("Alloc size before: %d\n", *strAllocSize);
 		*strAllocSize *= 2;
-		////printf("Alloc size after: %d\n", *strAllocSize); 
 		str = realloc(str, sizeof(char)*(*strAllocSize));
 		if (!str) {
 			fprintf(stderr, "Out of memory for string!\n");
 			exit(1);
 		}
-		////printf("Ended realloc\n"); 
 	}
 	if (str) { 
 		str[len] = add; 
